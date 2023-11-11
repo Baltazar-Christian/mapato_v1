@@ -1,29 +1,59 @@
 import 'package:flutter/material.dart';
-// import 'custom_layout.dart';
-import 'custom_layout_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatelessWidget {
-  final String userName; // Pass the user name from the login/registration
-
-  HomeScreen({required this.userName});
-
   @override
   Widget build(BuildContext context) {
-    return CustomLayoutScreen(
-      body: Center(
-        child: Text('Your home screen content goes here'),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+    return FutureBuilder<String>(
+      future: _getUserName(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Return a loader while fetching user details
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else {
+          // If the Future is complete, display the user details
+          if (snapshot.hasError) {
+            // Handle errors
+            return Scaffold(
+              body: Center(child: Text('Error: ${snapshot.error}')),
+            );
+          } else {
+            // Return the HomeScreen with user details
+            return _buildHomeScreen(context, snapshot.data);
+          }
+        }
+      },
+    );
+  }
+
+  Future<String> _getUserName() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userName') ?? 'User';
+  }
+
+  Widget _buildHomeScreen(BuildContext context, userName) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Welcome $userName'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              // Remove user details from shared preferences on logout
+              final SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+              await prefs.clear();
+
+              // Navigate back to the RegistrationScreen
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
           ),
         ],
+      ),
+      body: Center(
+        child: Text('Home Screen Content'),
       ),
     );
   }

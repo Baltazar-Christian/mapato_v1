@@ -1,55 +1,29 @@
 import 'package:flutter/material.dart';
 
-class CustomLayoutScreen extends StatefulWidget {
-  @override
-  _CustomLayoutScreenState createState() => _CustomLayoutScreenState();
-}
+class CustomLayoutScreen extends StatelessWidget {
+  final Widget body;
+  final Widget? bottomNavigationBar;
 
-class _CustomLayoutScreenState extends State<CustomLayoutScreen> {
-  int _currentIndex = 0;
+  CustomLayoutScreen({required this.body, this.bottomNavigationBar});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Custom Layout'),
-      ),
-      body: _getBody(_currentIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+        title: Text('Your App Name'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              // Implement logout logic here
+              // For example, navigate back to the RegistrationScreen
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
           ),
         ],
       ),
+      body: body,
+      bottomNavigationBar: bottomNavigationBar,
     );
-  }
-
-  Widget _getBody(int index) {
-    switch (index) {
-      case 0:
-        // Home page content
-        return Center(
-          child: Text('Home Page Content'),
-        );
-      case 1:
-        // Settings page content
-        return Center(
-          child: Text('Settings Page Content'),
-        );
-      default:
-        return Container(); // Return an empty container if the index is not handled
-    }
   }
 }

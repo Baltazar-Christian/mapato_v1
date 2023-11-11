@@ -14,8 +14,7 @@ class MainScreen extends StatelessWidget {
             // Navigate to HomeScreen instead of CustomLayoutScreen
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => HomeScreen(userName: 'User Name')),
+              MaterialPageRoute(builder: (context) => HomeScreen()),
             );
           },
           child: Text('Go to Home Screen'),
