@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'registration_screen.dart';
+import 'bottom_nav_bar.dart';
 
-class HomeScreen extends StatelessWidget {
-  late BuildContext context;
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -12,19 +17,15 @@ class HomeScreen extends StatelessWidget {
       future: _getUserName(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Return a loader while fetching user details
           return Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         } else {
-          // If the Future is complete, display the user details
           if (snapshot.hasError) {
-            // Handle errors
             return Scaffold(
               body: Center(child: Text('Error: ${snapshot.error}')),
             );
           } else {
-            // Return the HomeScreen with user details
             return _buildHomeScreen(snapshot.data);
           }
         }
@@ -45,12 +46,9 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
-              // Remove user details from shared preferences on logout
               final SharedPreferences prefs =
                   await SharedPreferences.getInstance();
               await prefs.clear();
-
-              // Navigate back to the RegistrationScreen
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => RegistrationScreen()),
@@ -68,6 +66,16 @@ class HomeScreen extends StatelessWidget {
           _buildCard('Expenses', Colors.orange),
           _buildCard('Debts', Colors.red),
         ],
+      ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+          // Handle navigation based on the selected item index
+          // You can navigate to other screens or perform other actions
+        },
       ),
     );
   }
