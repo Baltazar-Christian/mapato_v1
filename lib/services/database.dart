@@ -1,5 +1,3 @@
-// database.dart
-
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -24,6 +22,17 @@ class DBHelper {
           name TEXT,
           email TEXT UNIQUE,
           password TEXT
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE earnings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
+          source TEXT,
+          amount REAL,
+          date TEXT,
+          FOREIGN KEY (user_id) REFERENCES users (id)
         )
       ''');
     });
@@ -57,11 +66,12 @@ class User {
   String email;
   String password;
 
-  User(
-      {this.id,
-      required this.name,
-      required this.email,
-      required this.password});
+  User({
+    this.id,
+    required this.name,
+    required this.email,
+    required this.password,
+  });
 
   Map<String, dynamic> toMap() {
     return {'name': name, 'email': email, 'password': password};
