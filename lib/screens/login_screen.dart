@@ -1,8 +1,8 @@
-// login_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/database.dart';
 import 'home_screen.dart';
+import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -42,6 +42,20 @@ class _LoginScreenState extends State<LoginScreen> {
               },
               child: Text('Login'),
             ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("I don't have an account"),
+                SizedBox(width: 5),
+                TextButton(
+                  onPressed: () {
+                    _navigateToRegistrationScreen(context);
+                  },
+                  child: Text("Register"),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -65,16 +79,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (user != null && user.password == password) {
       print('Login successful');
-      _navigateToHomeScreen(context, user);
+      _saveUserDetails(user);
+      _navigateToHomeScreen(context);
     } else {
       print('Login failed');
     }
   }
 
-  void _navigateToHomeScreen(BuildContext context, User user) {
+  void _navigateToHomeScreen(BuildContext context) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => HomeScreen()),
     );
+  }
+
+  void _navigateToRegistrationScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RegistrationScreen()),
+    );
+  }
+
+  Future<void> _saveUserDetails(User user) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt('userId', user.id!); // Assuming user.id is an int
+    prefs.setString('userEmail', user.email);
+    prefs.setString('userName', user.name); // Assuming user.name is a String
+    // Add more user details as needed
   }
 }
