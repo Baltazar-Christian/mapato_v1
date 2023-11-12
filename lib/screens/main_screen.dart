@@ -4,6 +4,7 @@ import 'earnings_screen.dart';
 import 'expenses_screen.dart';
 import 'home_screen.dart';
 import 'savings_screen.dart';
+import 'login_screen.dart'; // Import your login screen file
 
 class MainScreen extends StatefulWidget {
   @override
@@ -18,7 +19,27 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mapato'),
+        title: Row(
+          children: [
+            // Your Logo Widget (Replace this with your actual logo)
+            Image.asset(
+              'assets/logo.png', // Replace with the path to your logo image
+              height: 30, // Adjust the height as needed
+              // Other properties like width, color, etc., can be adjusted as needed
+            ),
+            SizedBox(width: 8), // Add some space between the logo and text
+            Text('Mapato'), // Your app name
+          ],
+        ),
+        actions: [
+          // Logout Button
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () {
+              _logout(context);
+            },
+          ),
+        ],
       ),
       body: PageView(
         controller: _pageController,
@@ -58,6 +79,14 @@ class _MainScreenState extends State<MainScreen> {
         selectedItemColor: Colors.blue, // Set the selected item color
         unselectedItemColor: Colors.grey, // Set the unselected item color
       ),
+    );
+  }
+
+  void _logout(BuildContext context) async {
+    // Add your logout logic here
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
     );
   }
 }

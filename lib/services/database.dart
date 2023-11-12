@@ -1,8 +1,6 @@
 // database.dart
-
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class DBHelper {
   static Database? _database;
@@ -17,7 +15,7 @@ class DBHelper {
   }
 
   static Future<Database> initDB() async {
-    String path = join(await getDatabasesPath(), 'your_database_name.db');
+    String path = join(await getDatabasesPath(), 'your_database_name1.db');
     return await openDatabase(path, version: 1, onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE users (
@@ -29,10 +27,10 @@ class DBHelper {
       ''');
 
       await db.execute('''
-        CREATE TABLE earnings (
+        CREATE TABLE expenses (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER,
-          source TEXT,
+          description TEXT,
           amount REAL,
           date TEXT,
           FOREIGN KEY (user_id) REFERENCES users (id)
@@ -40,10 +38,10 @@ class DBHelper {
       ''');
 
       await db.execute('''
-        CREATE TABLE expenses (
+        CREATE TABLE earnings (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER,
-          name TEXT,
+          source TEXT,
           amount REAL,
           date TEXT,
           FOREIGN KEY (user_id) REFERENCES users (id)
@@ -73,20 +71,24 @@ class DBHelper {
     }
   }
 
-  Future<List<Earning>> getEarnings(int userId) async {
+  Future<int> insertExpense(Expense expense) async {
     Database db = await database;
-    List<Map<String, dynamic>> earnings =
-        await db.query('earnings', where: 'user_id = ?', whereArgs: [userId]);
-
-    return earnings.map((e) => Earning.fromMap(e)).toList();
+    return await db.insert('expenses', expense.toMap());
   }
 
   Future<List<Expense>> getExpenses(int userId) async {
     Database db = await database;
-    List<Map<String, dynamic>> expenses =
+    List<Map<String, dynamic>> expenseMaps =
         await db.query('expenses', where: 'user_id = ?', whereArgs: [userId]);
 
-    return expenses.map((e) => Expense.fromMap(e)).toList();
+    return List.generate(expenseMaps.length, (index) {
+      return Expense.fromMap(expenseMaps[index]);
+    });
+  }
+
+  Future<int> deleteExpense(int expenseId) async {
+    Database db = await database;
+    return await db.delete('expenses', where: 'id = ?', whereArgs: [expenseId]);
   }
 
   Future<int> insertEarning(Earning earning) async {
@@ -94,9 +96,16 @@ class DBHelper {
     return await db.insert('earnings', earning.toMap());
   }
 
-  Future<int> insertExpense(Expense expense) async {
+  Future<List<Earning>> getEarnings(int userId) async {
     Database db = await database;
-    return await db.insert('expenses', expense.toMap());
+    List<Map<String, dynamic>> earningMaps =
+        await db.query('earnings', where: 'user_id = ?', whereArgs: [userId]);
+
+    print('Earnings from database: $earningMaps');
+
+    return List.generate(earningMaps.length, (index) {
+      return Earning.fromMap(earningMaps[index]);
+    });
   }
 
   Future<int> updateEarning(Earning earning) async {
@@ -109,24 +118,9 @@ class DBHelper {
     );
   }
 
-  Future<int> updateExpense(Expense expense) async {
+  Future<int> deleteEarning(int earningId) async {
     Database db = await database;
-    return await db.update(
-      'expenses',
-      expense.toMap(),
-      where: 'id = ?',
-      whereArgs: [expense.id],
-    );
-  }
-
-  Future<int> deleteEarning(int id) async {
-    Database db = await database;
-    return await db.delete('earnings', where: 'id = ?', whereArgs: [id]);
-  }
-
-  Future<int> deleteExpense(int id) async {
-    Database db = await database;
-    return await db.delete('expenses', where: 'id = ?', whereArgs: [id]);
+    return await db.delete('earnings', where: 'id = ?', whereArgs: [earningId]);
   }
 }
 
@@ -157,16 +151,51 @@ class User {
   }
 }
 
+class Expense {
+  int? id;
+  int userId;
+  String description;
+  double amount;
+  String date;
+
+  Expense({
+    this.id,
+    required this.userId,
+    required this.description,
+    required this.amount,
+    required this.date,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': userId,
+      'description': description,
+      'amount': amount,
+      'date': date,
+    };
+  }
+
+  factory Expense.fromMap(Map<String, dynamic> map) {
+    return Expense(
+      id: map['id'],
+      userId: map['user_id'],
+      description: map['description'],
+      amount: map['amount'],
+      date: map['date'],
+    );
+  }
+}
+
 class Earning {
   int? id;
-  int user_id;
+  int userId;
   String source;
   double amount;
   String date;
 
   Earning({
     this.id,
-    required this.user_id,
+    required this.userId,
     required this.source,
     required this.amount,
     required this.date,
@@ -174,7 +203,7 @@ class Earning {
 
   Map<String, dynamic> toMap() {
     return {
-      'user_id': user_id,
+      'user_id': userId,
       'source': source,
       'amount': amount,
       'date': date,
@@ -184,43 +213,8 @@ class Earning {
   factory Earning.fromMap(Map<String, dynamic> map) {
     return Earning(
       id: map['id'],
-      user_id: map['user_id'],
+      userId: map['user_id'],
       source: map['source'],
-      amount: map['amount'],
-      date: map['date'],
-    );
-  }
-}
-
-class Expense {
-  int? id;
-  int user_id;
-  String name;
-  double amount;
-  String date;
-
-  Expense({
-    this.id,
-    required this.user_id,
-    required this.name,
-    required this.amount,
-    required this.date,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'user_id': user_id,
-      'name': name,
-      'amount': amount,
-      'date': date,
-    };
-  }
-
-  factory Expense.fromMap(Map<String, dynamic> map) {
-    return Expense(
-      id: map['id'],
-      user_id: map['user_id'],
-      name: map['name'],
       amount: map['amount'],
       date: map['date'],
     );
