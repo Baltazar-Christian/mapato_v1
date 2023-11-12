@@ -40,23 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHomeScreen(userName) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Welcome $userName'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              final SharedPreferences prefs =
-                  await SharedPreferences.getInstance();
-              await prefs.clear();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => RegistrationScreen()),
-              );
-            },
-          ),
-        ],
-      ),
       body: GridView.count(
         crossAxisCount: 2,
         padding: EdgeInsets.all(16.0),
@@ -66,16 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildCard('Expenses', Colors.orange),
           _buildCard('Debts', Colors.red),
         ],
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          // Handle navigation based on the selected item index
-          // You can navigate to other screens or perform other actions
-        },
       ),
     );
   }

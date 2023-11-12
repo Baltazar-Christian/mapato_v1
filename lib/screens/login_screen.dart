@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/database.dart';
 import 'home_screen.dart';
-import 'registration_screen.dart';
+import 'main_screen.dart';
+import 'registration_screen.dart'; // Make sure to import MainScreen
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -80,16 +81,17 @@ class _LoginScreenState extends State<LoginScreen> {
     if (user != null && user.password == password) {
       print('Login successful');
       _saveUserDetails(user);
-      _navigateToHomeScreen(context);
+      _navigateToMainScreen(
+          context); // Navigate to MainScreen instead of HomeScreen
     } else {
       print('Login failed');
     }
   }
 
-  void _navigateToHomeScreen(BuildContext context) {
+  void _navigateToMainScreen(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
+      MaterialPageRoute(builder: (context) => MainScreen()),
     );
   }
 
