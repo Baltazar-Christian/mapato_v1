@@ -86,6 +86,44 @@ class DBHelper {
     });
   }
 
+  // Update Expense method
+  Future<void> updateExpense(Expense updatedExpense) async {
+    final db = await database;
+    await db.update(
+      'Expenses',
+      updatedExpense.toMap(),
+      where: 'id = ?',
+      whereArgs: [updatedExpense.id],
+    );
+  }
+
+  // Get single Expense method
+  Future<Expense?> getExpense(int expenseId) async {
+    final db = await database;
+    List<Map<String, dynamic>> result = await db.query(
+      'Expenses',
+      where: 'id = ?',
+      whereArgs: [expenseId],
+    );
+
+    if (result.isNotEmpty) {
+      return Expense.fromMap(result.first);
+    } else {
+      return null;
+    }
+  }
+
+  Future<Expense> getExpenseDetails(int expenseId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'expenses',
+      where: 'id = ?',
+      whereArgs: [expenseId],
+    );
+
+    return Expense.fromMap(maps.first);
+  }
+
   Future<int> deleteExpense(int expenseId) async {
     Database db = await database;
     return await db.delete('expenses', where: 'id = ?', whereArgs: [expenseId]);
