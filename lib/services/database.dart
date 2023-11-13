@@ -209,6 +209,17 @@ class DBHelper {
     }
   }
 
+  Future<Savings> getSavingDetails(int savingId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'savings',
+      where: 'id = ?',
+      whereArgs: [savingId],
+    );
+
+    return Savings.fromMap(maps.first);
+  }
+
   Future<int> deleteSavings(int savingsId) async {
     Database db = await database;
     return await db.delete('savings', where: 'id = ?', whereArgs: [savingsId]);

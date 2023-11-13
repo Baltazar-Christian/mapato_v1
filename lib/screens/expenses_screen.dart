@@ -185,7 +185,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         return AlertDialog(
           title: Text('Edit Expense'),
           content: Column(
-            mainAxisSize: MainAxisSize.max,
+            mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _descriptionController,

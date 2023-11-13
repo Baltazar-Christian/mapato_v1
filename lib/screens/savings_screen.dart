@@ -55,20 +55,26 @@ class _SavingsScreenState extends State<SavingsScreen> {
                 return ListTile(
                   title: Text(savings[index].name),
                   subtitle: Text(
-                      'Amount: ${savings[index].amount}, Description: ${savings[index].description}'),
+                      '${savings[index].amount} - ${savings[index].description}'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: Icon(Icons.edit),
                         onPressed: () {
-                          _editSavings(context, savings[index]);
+                          _editSaving(context, savings[index]);
                         },
                       ),
                       IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () {
-                          _deleteSavings(context, savings[index]);
+                          _deleteSaving(context, savings[index]);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.info),
+                        onPressed: () {
+                          _showSingleSaving(context, savings[index].id!);
                         },
                       ),
                     ],
@@ -78,19 +84,19 @@ class _SavingsScreenState extends State<SavingsScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _addSavings(context);
+          _addSaving(context);
         },
         child: Icon(Icons.add),
       ),
     );
   }
 
-  void _addSavings(BuildContext context) {
+  void _addSaving(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add Savings'),
+          title: Text('Add Saving'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -118,13 +124,13 @@ class _SavingsScreenState extends State<SavingsScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                Savings newSavings = Savings(
+                Savings newSaving = Savings(
                   userId: userId,
                   name: _nameController.text,
                   amount: double.parse(_amountController.text),
                   description: _descriptionController.text,
                 );
-                await DBHelper().insertSavings(newSavings);
+                await DBHelper().insertSavings(newSaving);
                 _loadSavings();
                 _clearControllers();
                 Navigator.pop(context);
@@ -137,16 +143,16 @@ class _SavingsScreenState extends State<SavingsScreen> {
     );
   }
 
-  void _editSavings(BuildContext context, Savings savings) {
-    _nameController.text = savings.name;
-    _amountController.text = savings.amount.toString();
-    _descriptionController.text = savings.description;
+  void _editSaving(BuildContext context, Savings saving) {
+    _nameController.text = saving.name;
+    _amountController.text = saving.amount.toString();
+    _descriptionController.text = saving.description;
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit Savings'),
+          title: Text('Edit Saving'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -174,14 +180,14 @@ class _SavingsScreenState extends State<SavingsScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                Savings updatedSavings = Savings(
-                  id: savings.id,
+                Savings updatedSaving = Savings(
+                  id: saving.id,
                   userId: userId,
                   name: _nameController.text,
                   amount: double.parse(_amountController.text),
                   description: _descriptionController.text,
                 );
-                await DBHelper().updateSavings(updatedSavings);
+                await DBHelper().updateSavings(updatedSaving);
                 _loadSavings();
                 _clearControllers();
                 Navigator.pop(context);
@@ -194,13 +200,13 @@ class _SavingsScreenState extends State<SavingsScreen> {
     );
   }
 
-  void _deleteSavings(BuildContext context, Savings savings) {
+  void _deleteSaving(BuildContext context, Savings saving) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete Savings'),
-          content: Text('Are you sure you want to delete this savings?'),
+          title: Text('Delete Saving'),
+          content: Text('Are you sure you want to delete this saving?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -210,11 +216,41 @@ class _SavingsScreenState extends State<SavingsScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await DBHelper().deleteSavings(savings.id!);
+                await DBHelper().deleteSavings(saving.id!);
                 _loadSavings();
                 Navigator.pop(context);
               },
               child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSingleSaving(BuildContext context, int savingId) async {
+    Savings savingDetails = await DBHelper().getSavingDetails(savingId);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Saving Details'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Name: ${savingDetails.name}'),
+              Text('Amount: ${savingDetails.amount}'),
+              Text('Description: ${savingDetails.description}'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Close'),
             ),
           ],
         );
