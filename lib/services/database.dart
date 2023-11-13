@@ -1,4 +1,3 @@
-// database.dart
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -15,7 +14,7 @@ class DBHelper {
   }
 
   static Future<Database> initDB() async {
-    String path = join(await getDatabasesPath(), 'your_database_name1.db');
+    String path = join(await getDatabasesPath(), 'dummy.db');
     return await openDatabase(path, version: 1, onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE users (
@@ -44,6 +43,17 @@ class DBHelper {
           source TEXT,
           amount REAL,
           date TEXT,
+          FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE savings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
+          name TEXT,
+          amount REAL,
+          description TEXT,
           FOREIGN KEY (user_id) REFERENCES users (id)
         )
       ''');
@@ -86,22 +96,20 @@ class DBHelper {
     });
   }
 
-  // Update Expense method
   Future<void> updateExpense(Expense updatedExpense) async {
     final db = await database;
     await db.update(
-      'Expenses',
+      'expenses',
       updatedExpense.toMap(),
       where: 'id = ?',
       whereArgs: [updatedExpense.id],
     );
   }
 
-  // Get single Expense method
   Future<Expense?> getExpense(int expenseId) async {
     final db = await database;
     List<Map<String, dynamic>> result = await db.query(
-      'Expenses',
+      'expenses',
       where: 'id = ?',
       whereArgs: [expenseId],
     );
@@ -159,6 +167,51 @@ class DBHelper {
   Future<int> deleteEarning(int earningId) async {
     Database db = await database;
     return await db.delete('earnings', where: 'id = ?', whereArgs: [earningId]);
+  }
+
+  Future<int> insertSavings(Savings savings) async {
+    Database db = await database;
+    return await db.insert('savings', savings.toMap());
+  }
+
+  Future<List<Savings>> getSavings(int userId) async {
+    Database db = await database;
+    List<Map<String, dynamic>> savingsMaps =
+        await db.query('savings', where: 'user_id = ?', whereArgs: [userId]);
+
+    return List.generate(savingsMaps.length, (index) {
+      return Savings.fromMap(savingsMaps[index]);
+    });
+  }
+
+  Future<void> updateSavings(Savings updatedSavings) async {
+    final db = await database;
+    await db.update(
+      'savings',
+      updatedSavings.toMap(),
+      where: 'id = ?',
+      whereArgs: [updatedSavings.id],
+    );
+  }
+
+  Future<Savings?> getSavingsDetails(int savingsId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'savings',
+      where: 'id = ?',
+      whereArgs: [savingsId],
+    );
+
+    if (maps.isNotEmpty) {
+      return Savings.fromMap(maps.first);
+    } else {
+      return null;
+    }
+  }
+
+  Future<int> deleteSavings(int savingsId) async {
+    Database db = await database;
+    return await db.delete('savings', where: 'id = ?', whereArgs: [savingsId]);
   }
 }
 
@@ -255,6 +308,41 @@ class Earning {
       source: map['source'],
       amount: map['amount'],
       date: map['date'],
+    );
+  }
+}
+
+class Savings {
+  int? id;
+  int userId;
+  String name;
+  double amount;
+  String description;
+
+  Savings({
+    this.id,
+    required this.userId,
+    required this.name,
+    required this.amount,
+    required this.description,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': userId,
+      'name': name,
+      'amount': amount,
+      'description': description,
+    };
+  }
+
+  factory Savings.fromMap(Map<String, dynamic> map) {
+    return Savings(
+      id: map['id'],
+      userId: map['user_id'],
+      name: map['name'],
+      amount: map['amount'],
+      description: map['description'],
     );
   }
 }
