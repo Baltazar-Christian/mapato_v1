@@ -53,7 +53,7 @@ class _MainScreenState extends State<MainScreen> {
           EarningsScreen(),
           SavingsScreen(),
           ExpensesScreen(),
-          DebtsScreen(),
+          DebtScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

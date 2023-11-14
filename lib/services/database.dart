@@ -14,7 +14,7 @@ class DBHelper {
   }
 
   static Future<Database> initDB() async {
-    String path = join(await getDatabasesPath(), 'dummy.db');
+    String path = join(await getDatabasesPath(), 'dummy1.db');
     return await openDatabase(path, version: 1, onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE users (
@@ -54,6 +54,18 @@ class DBHelper {
           name TEXT,
           amount REAL,
           description TEXT,
+          FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE debts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
+          amount REAL,
+          pamount REAL DEFAULT 0,
+          description TEXT,
+          owner TEXT,
           FOREIGN KEY (user_id) REFERENCES users (id)
         )
       ''');
@@ -147,8 +159,6 @@ class DBHelper {
     List<Map<String, dynamic>> earningMaps =
         await db.query('earnings', where: 'user_id = ?', whereArgs: [userId]);
 
-    print('Earnings from database: $earningMaps');
-
     return List.generate(earningMaps.length, (index) {
       return Earning.fromMap(earningMaps[index]);
     });
@@ -223,6 +233,62 @@ class DBHelper {
   Future<int> deleteSavings(int savingsId) async {
     Database db = await database;
     return await db.delete('savings', where: 'id = ?', whereArgs: [savingsId]);
+  }
+
+  Future<int> insertDebt(Debt debt) async {
+    Database db = await database;
+    return await db.insert('debts', debt.toMap());
+  }
+
+  Future<List<Debt>> getDebts(int userId) async {
+    Database db = await database;
+    List<Map<String, dynamic>> debtMaps =
+        await db.query('debts', where: 'user_id = ?', whereArgs: [userId]);
+
+    return List.generate(debtMaps.length, (index) {
+      return Debt.fromMap(debtMaps[index]);
+    });
+  }
+
+  Future<void> updateDebt(Debt updatedDebt) async {
+    final db = await database;
+    await db.update(
+      'debts',
+      updatedDebt.toMap(),
+      where: 'id = ?',
+      whereArgs: [updatedDebt.id],
+    );
+  }
+
+  Future<Debt?> getDebtDetails(int debtId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'debts',
+      where: 'id = ?',
+      whereArgs: [debtId],
+    );
+
+    if (maps.isNotEmpty) {
+      return Debt.fromMap(maps.first);
+    } else {
+      return null;
+    }
+  }
+
+  Future<Debt> getDebtDetail(int debtId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'debts',
+      where: 'id = ?',
+      whereArgs: [debtId],
+    );
+
+    return Debt.fromMap(maps.first);
+  }
+
+  Future<int> deleteDebt(int debtId) async {
+    Database db = await database;
+    return await db.delete('debts', where: 'id = ?', whereArgs: [debtId]);
   }
 }
 
@@ -354,6 +420,45 @@ class Savings {
       name: map['name'],
       amount: map['amount'],
       description: map['description'],
+    );
+  }
+}
+
+class Debt {
+  int? id;
+  int userId;
+  double amount;
+  double pamount;
+  String description;
+  String owner;
+
+  Debt({
+    this.id,
+    required this.userId,
+    required this.amount,
+    required this.pamount,
+    required this.description,
+    required this.owner,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': userId,
+      'amount': amount,
+      'pamount': pamount,
+      'description': description,
+      'owner': owner,
+    };
+  }
+
+  factory Debt.fromMap(Map<String, dynamic> map) {
+    return Debt(
+      id: map['id'],
+      userId: map['user_id'],
+      amount: map['amount'],
+      pamount: map['pamount'],
+      description: map['description'],
+      owner: map['owner'],
     );
   }
 }
